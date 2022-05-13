@@ -61,4 +61,4 @@ sudo ln -s /usr/share/phpmyadmin
 ## Wrap-Up
 The Apache2 web server can be accessed by navigating to the Raspberry Pi's IP address in a web browser.
 By default, the Raspberry Pi's IP address will be dynamically assigned each time it connects to a Wi-Fi network. We have managed to have the Raspberry Pi be assigned one of two possible IP addresses: `192.168.4.2` and `192.168.4.3`.
-As an example, we can access the Raspberry Pi's Apache2 web server by navigating to `192.168.4.3` via Chrome on a standalone device connected to a commmon Wi-Fi network. The user will be presented with the Apache2 web server's `var/www/html` directory. In the directory, we will find `esp-data.php`, `phpmyadmin/`, and `post-esp-data.php`.
+As an example, we can access the Raspberry Pi's Apache2 web server by navigating to `192.168.4.2` via Chrome on a standalone device connected to a commmon Wi-Fi network. The user will be presented with the Apache2 web server's `var/www/html` directory. In the directory, we will find `esp-data.php`, `phpmyadmin/`, and `post-esp-data.php`.
