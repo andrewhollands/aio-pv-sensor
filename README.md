@@ -27,7 +27,7 @@ and then run the following command:
 ```
 sudo apt install php -y
 ```
-We will remain in the `/var/www/html/` directory until stated otherwise.
+We will remain in the `/var/www/html/` directory unless stated otherwise.
 Restarting the Apache2 web server may be necessary after making changes to its directory. To restart Apache2, run the following command:
 ```
 sudo service apache2 restart
