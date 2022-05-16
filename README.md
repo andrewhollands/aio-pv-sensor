@@ -1,14 +1,14 @@
 # All-In-One Photovoltaic Sensor
 ## Introduction
 This GitHub repository is purposed with housing the instructions and code to set up the primary and secondary networking nodes for our All-In-One (AIO) Photovoltaic (PV) Sensor.
-This design is created for the Orlando Utilties Commission (OUC) to use for two main purposes: (1) to identify and troubleshoot faulty solar panels and (2) to collect, transmit, and organize multiple datapoints, including temperature, irradiance, voltage, and current, from a solar panel into a database.
-There are multiple software components that will be discussed in this document. These components include the following: (1) the operating system which will run on our main network node, Raspberry Pi OS, (2) the web server which will host our database, Apache2, and (3) the database which will structurally store our collected data, MySQL.
+This design is created for the Orlando Utilities Commission (OUC) to use for two main purposes: (1) to identify and troubleshoot faulty solar panels and (2) to collect, transmit, and organize multiple datapoints, including temperature, irradiance, voltage, and current, from a solar panel into a database.
+There are multiple software components that will be discussed in this document. These components include the following: (1) the operating system which will run on our main network node, Raspberry Pi OS, (2) the web server which will host our database, Apache2, (3) the database which will structurally store our collected data, MySQL, and (4) the data collection device that interfaces with various sensors and then transmits collected data to the Raspberry Pi, ESP32.
 Additionally, there are multiple hardware components involved in this design which will not be discussed in large detail in this document but will be discussed in other supporting documents.
 ## Raspberry Pi OS
-Downloading and installing the the Raspberry Pi OS has been simplified in the recent years by the Raspberry Pi foundation.
+Downloading and installing the Raspberry Pi OS has been simplified in the recent years by the Raspberry Pi foundation.
 The Raspberry Pi Imager is the easiest way to install Raspberry Pi OS without sacrificing customization to a microSD card or USB device, ready to use with the Raspberry Pi.
 Download and install Raspberry Pi Imager via https://www.raspberrypi.com/software/ to a computer with an SD card reader. Put the SD card you'll use with your Raspberry Pi into the reader and run Raspberry Pi Imager.
-For our design, we utilized the advanced settings menu during installation to initalize the Raspberry Pi OS with our Wi-Fi credentials and SSH enabled for easy remote access. For further, extraneous information on Raspberry Pi OS setup, refer to https://raspberrypi-guide.github.io/getting-started/install-operating-system.
+For our design, we utilized the advanced settings menu during installation to initialize the Raspberry Pi OS with our Wi-Fi credentials and SSH enabled for easy remote access. For further, extraneous information on Raspberry Pi OS setup, refer to https://raspberrypi-guide.github.io/getting-started/install-operating-system.
 ## Apache2 Web Server
 At this point, the Raspberry Pi OS has been installed on the Raspberry Pi and has been connected to the Internet via Wi-Fi.
 Apache2 is the web server we will use to host our database and necessary webpages.
@@ -43,6 +43,7 @@ Finally, secure the MySQL by running the following command:
 ```
 sudo mysql_secure_installation
 ```
+Our MySQL database code can be found [here](https://github.com/andrewhollands/aio-pv-sensor/blob/main/SensorData.sql).
 ## phpMyAdmin
 phpMyAdmin is an application prebuilt to administer the MySQL database via web interface.
 To install phpMyAdmin on the Raspberry Pi's Apache2 web server, run the following command:
@@ -58,6 +59,11 @@ Finally, move the phpmyadmin folder to `/var/www/html` as it is likely incorrect
 ```
 sudo ln -s /usr/share/phpmyadmin
 ```
+## ESP32
+ESP32 is a multipurpose microcontroller that meets the needs of our AIO PV Sensor design and more.
+Our design will implement two (2) ESP32 devices: one (the "sensing node") will be used to collect and wirelessly transmit hardwired data from a thermocouple, pyranometer, voltage sensor and current sensor, and the other will be used as an Wi-Fi access point (the "access point") to allow communication between the other ESP32 device and the Raspberry Pi device.
+The sensing node will house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-poster.c) that will convert analog values to digital values where necesssary and then organize collected values into a [HTTP post](https://github.com/andrewhollands/aio-pv-sensor/blob/main/post-esp-data.php), which will be interfaced with the [MySQL database/HTML webpage](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-data.php) housed on the Raspberry Pi's web server.
+The access point will also house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-access-point.c) that enables the ESP32 device to act as a Wi-Fi access point for multiple wireless device connections.
 ## Wrap-Up
 The Apache2 web server can be accessed by navigating to the Raspberry Pi's IP address in a web browser.
 By default, the Raspberry Pi's IP address will be dynamically assigned each time it connects to a Wi-Fi network. We have managed to have the Raspberry Pi be assigned one of two possible IP addresses: `192.168.4.2` and `192.168.4.3`.
