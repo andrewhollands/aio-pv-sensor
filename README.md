@@ -33,7 +33,7 @@ Restarting the Apache2 web server may be necessary after making changes to its d
 sudo service apache2 restart
 ```
 ## MySQL Database
-MySQL is the relational database platform we will use to store our collected data
+MySQL is the relational database platform we will use to store our collected data.
 To install MySQL on the Raspberry Pi's Apache2 web server, run the following command:
 ```
 sudo apt install mariadb-server php-mysql -y
