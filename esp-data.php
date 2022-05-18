@@ -1,5 +1,16 @@
 <!DOCTYPE html>
-<html><body>
+<head>
+    <title>
+        Reloading page after 5 seconds
+    </title>
+      
+    <script>
+        function autoRefresh() {
+            window.location = window.location.href;
+        }
+        setInterval('autoRefresh()', 2000);
+    </script>
+</head>
 <?php
 /*
   Rui Santos
