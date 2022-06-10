@@ -76,7 +76,7 @@ void loop() {
     
     // Voltage sensing
     adcValue1 = analogRead(volt);
-    voltValue1 = 0.19 + ((adcValue1 * 3.3) / 4095);
+    voltValue1 = ((adcValue1 * 3.3) / 4095);
     
     // Current sensing
     adcValue2 = analogRead(amp);
