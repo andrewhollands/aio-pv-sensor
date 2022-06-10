@@ -40,6 +40,11 @@ int adcValue1;
 float voltValue1;
 const int volt = 35;
 
+// Current sensor setup
+int adcValue2;
+float ampValue;
+const int amp = 34;
+
 void setup()  {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -51,6 +56,8 @@ void setup()  {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP address: ");
   Serial.println(WiFi.localIP());
+  
+  // For pyranometer
   // Software SPI (specify all, use any available digital)
   //          sck, mosi, miso, cs
   adc.begin(14,13,12,15);  
@@ -66,9 +73,16 @@ void loop() {
 
     //(OLD) adcValue = analogRead(pyra);
     //(OLD)voltValue = 0.2 + ((adcValue * 3.3) / 4095);
+    
+    // Voltage sensing
     adcValue1 = analogRead(volt);
     voltValue1 = 0.19 + ((adcValue1 * 3.3) / 4095);
-    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String(adc.readADCDifference(1) * conv * pcf) + "&value4=" + String(voltValue1) + "&value5=" + String(0);
+    
+    // Current sensing
+    adcValue2 = analogRead(amp);
+    ampValue = 0.19 + ((adcValue2 * 3.3) / 4095);
+    
+    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String(adc.readADCDifference(1) * conv * pcf) + "&value4=" + String(voltValue1) + "&value5=" + String(ampValue);
     Serial.print("httpRequestData: ");
     Serial.println(httpRequestData);
 
