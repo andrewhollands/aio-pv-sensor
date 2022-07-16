@@ -82,7 +82,8 @@ void loop() {
     adcValue2 = analogRead(amp);
     ampValue = 0.19 + ((adcValue2 * 3.3) / 4095);
     
-    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String(adc.readADCDifference(1) * conv * pcf) + "&value4=" + String(voltValue1) + "&value5=" + String(ampValue);
+    // value3 is multiplied by 5 to convert mV to irradiance
+    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String((adc.readADCDifference(1) * conv * pcf) * 5) + "&value4=" + String(voltValue1) + "&value5=" + String(ampValue);
     Serial.print("httpRequestData: ");
     Serial.println(httpRequestData);
 
