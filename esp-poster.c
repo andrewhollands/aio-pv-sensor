@@ -9,8 +9,9 @@
 const char* ssid    = "yourAP";
 const char* password = "yourPassword";
 
-// Domain website/IP address
+// Domain website/IP addresses
 const char* serverName = "http://192.168.4.2/post-esp-data.php";
+const char* altServerName = "http://192.168.4.3/post-esp-data.php";
 
 // API key value
 // Ensure this is the same as the value in post-esp-data.php
@@ -66,10 +67,13 @@ void setup()  {
 void loop() {
   if(WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
+    HTTPClient altHttp;
 
     http.begin(serverName);
+    altHttp.begin(altServerName);
 
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    altHttp.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
     //(OLD) adcValue = analogRead(pyra);
     //(OLD)voltValue = 0.2 + ((adcValue * 3.3) / 4095);
@@ -86,10 +90,16 @@ void loop() {
     String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String((adc.readADCDifference(1) * conv * pcf) * 5) + "&value4=" + String(voltValue1) + "&value5=" + String(ampValue);
     Serial.print("httpRequestData: ");
     Serial.println(httpRequestData);
-
+    
     // Send HTTP POST request
     int httpResponseCode = http.POST(httpRequestData);
-
+    
+    String altHttpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(thermocouple.readCelsius()) + "&value2=" + String(thermocouple.readFahrenheit())  + "&value3=" + String((adc.readADCDifference(1) * conv * pcf) * 5) + "&value4=" + String(voltValue1) + "&value5=" + String(ampValue);
+    Serial.print("altHttpRequestData: ");
+    Serial.println(altHttpRequestData);
+    
+    int altHttpResponseCode = altHttp.POST(altHttpRequestData);
+    
     if (httpResponseCode>0) {
       Serial.print("HTTP Response Code: ");
       Serial.println(httpResponseCode);
@@ -100,6 +110,18 @@ void loop() {
     }
     // Free resources
     http.end();
+    
+    if (altHttpResponseCode>0) {
+      Serial.print("Alternate HTTP Response Code: ");
+      Serial.println(altHttpResponseCode);
+    }
+    else {
+      Serial.print("Error code: ");
+      Serial.println(altHttpResponseCode);
+    }
+    // Free resources
+    altHttp.end();
+    
   }
   else {
     Serial.println("WiFi Disconnected");
