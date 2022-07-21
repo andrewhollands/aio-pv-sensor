@@ -74,8 +74,8 @@ void setup()
   	Serial.println("Connecting...");
   	while(WiFi.status() != WL_CONNECTED)
   	{
-    	delay(500);
-    	Serial.print(".");
+    	    delay(500);
+    	    Serial.print(".");
   	}
 	Serial.println("");
   	Serial.print("Connected to WiFi network with IP address: ");
@@ -112,28 +112,28 @@ void loop()
 
 	    // Pyranometer sensing
 	    for (int i = 0; i < SAMPLES; i++)
-    	{
+    	    {
     		rawIrradiance[i] = adc.readADCDifference(1) * conv * pcf;
     		irradianceSum += rawIrradiance[i];
-    	}
-    	averageRawIrradiance = irradianceSum / SAMPLES;
-    	outputIrradiance = averageRawIrradiance;
+    	    }
+    	    averageRawIrradiance = irradianceSum / SAMPLES;
+    	    outputIrradiance = averageRawIrradiance;
 
 	    // Voltage sensing
 	    for (int i = 0; i < SAMPLES; i++)
-    	{
+    	    {
 	        analogVolt[i] = analogRead(VOLT);
 	        voltSum += analogVolt[i];
-    	}
+    	    }
 	    averageAnalogVolt = voltSum / SAMPLES;
 	    digitalVolt = 22.05 * (0.16 + (averageAnalogVolt * 3.3 / 4095));
 
 	    // Current sensing
-		  for (int i = 0; i < SAMPLES; i++)
-    	{
+	    for (int i = 0; i < SAMPLES; i++)
+    	    {
 	        analogAmp[i] = analogRead(AMP);
 	        ampSum += analogAmp[i];
-    	}
+    	    }
 	    averageAnalogAmp = ampSum / SAMPLES;
 	    digitalAmp = ((averageAnalogAmp * 3.3) / 4095);
 	    digitalAmp = ((digitalAmp + 0.102) / 0.173);
