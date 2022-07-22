@@ -59,8 +59,8 @@ Finally, move the phpmyadmin folder to `/var/www/html` as it is likely incorrect
 ```
 sudo ln -s /usr/share/phpmyadmin
 ```
-## [ESP32 Microcontroller](https://www.espressif.com/en/products/socs/esp32)
-ESP32 is a multipurpose microcontroller that meets the needs of our AIO PV Sensor design and more.
+## [ESP32 Microcontroller Unit](https://www.espressif.com/en/products/socs/esp32)
+ESP32 is a multipurpose microcontroller unit (MCU) that meets the needs of our AIO PV Sensor design and more.
 Our design will implement two (2) ESP32 devices: one (the "sensing node") will be used to collect and wirelessly transmit hardwired data from a thermocouple, pyranometer, voltage sensor and current sensor, and the other will be used as a Wi-Fi access point (the "access point") to allow communication between the other ESP32 device and the Raspberry Pi device.
 The sensing node will house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-poster-with-averaging.c) that will convert analog values to digital values where necessary and then organize collected values into an [HTTP post](https://github.com/andrewhollands/aio-pv-sensor/blob/main/post-esp-data.php), which will be interfaced with the [MySQL database/HTML webpage](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-data.php) housed on the Raspberry Pi's Apache2 web server.
 The access point will also house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-access-point.c) that enables the ESP32 device to act as a Wi-Fi access point for multiple wireless device connections.
