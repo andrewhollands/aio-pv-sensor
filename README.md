@@ -2,7 +2,7 @@
 ## Introduction
 This GitHub repository is purposed with housing the instructions and code to set up the primary and secondary networking nodes for our All-In-One (AIO) Photovoltaic (PV) Sensor.
 This design is created for the Orlando Utilities Commission (OUC) to use for two main purposes: (1) to identify and troubleshoot faulty solar panels and (2) to collect, transmit, and organize multiple datapoints, including temperature, irradiance, voltage, and current, from a solar panel into a database.
-There are multiple software components that will be discussed in this document. These components include the following: (1) the operating system which will run on our main network node, Raspberry Pi OS, (2) the web server which will host our database, Apache2, (3) the database which will structurally store our collected data, MySQL, and (4) the data collection device that interfaces with various sensors and then transmits collected data to the Raspberry Pi, ESP32.
+There are multiple software components that will be discussed in this document. These components include the following: (1) the operating system, Raspberry Pi OS, which will run on our main network node, (2) the web server, Apache2, which will host our database, (3) the database, MySQL, which will structurally store our collected data and (4) the data collection device, ESP32, that interfaces with various sensors and then transmits collected data to the Raspberry Pi.
 Additionally, there are multiple hardware components involved in this design which will not be discussed in large detail in this document but will be discussed in other supporting documents.
 ## Raspberry Pi OS
 Downloading and installing the Raspberry Pi OS has been simplified in the recent years by the Raspberry Pi foundation.
