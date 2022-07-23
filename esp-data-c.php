@@ -85,7 +85,6 @@ if ($result = $conn->query($sql)) {
     }
     $result->free();
 }
-
 $conn->close();
 ?> 
 </table>
