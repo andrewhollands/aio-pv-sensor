@@ -1,12 +1,5 @@
 /*
   WiFiAccessPoint.ino creates a WiFi access point and provides a web server on it.
-
-  Steps:
-  1. Connect to the access point "yourAp"
-  2. Point your web browser to http://192.168.4.1/H to turn the LED on or http://192.168.4.1/L to turn it off
-     OR
-     Run raw TCP "GET /H" and "GET /L" on PuTTY terminal with 192.168.4.1 as IP address and 80 as port
-
   Created for arduino-esp32 on 04 July, 2018
   by Elochukwu Ifediora (fedy0)
 */
@@ -15,18 +8,13 @@
 #include <WiFiClient.h>
 #include <WiFiAP.h>
 
-#define LED_BUILTIN 2   // Set the GPIO pin where you connected your test LED or comment this line out if your dev board has a built-in LED
-
 // Set these to your desired credentials.
 const char *ssid     = "OUC_AIOPV_AP";
 const char *password = "sdouc";
 
 WiFiServer server(80);
 
-
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-
   Serial.begin(115200);
   Serial.println();
   Serial.println("Configuring access point...");
@@ -62,10 +50,6 @@ void loop() {
             client.println("Content-type:text/html");
             client.println();
 
-            // the content of the HTTP response follows the header:
-            client.print("Click <a href=\"/H\">here</a> to turn ON the LED.<br>");
-            client.print("Click <a href=\"/L\">here</a> to turn OFF the LED.<br>");
-
             // The HTTP response ends with another blank line:
             client.println();
             // break out of the while loop:
@@ -75,14 +59,6 @@ void loop() {
           }
         } else if (c != '\r') {  // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
-        }
-
-        // Check to see if the client request was "GET /H" or "GET /L":
-        if (currentLine.endsWith("GET /H")) {
-          digitalWrite(LED_BUILTIN, HIGH);               // GET /H turns the LED on
-        }
-        if (currentLine.endsWith("GET /L")) {
-          digitalWrite(LED_BUILTIN, LOW);                // GET /L turns the LED off
         }
       }
     }
