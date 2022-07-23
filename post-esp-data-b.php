@@ -20,8 +20,6 @@ $username = "root";
 // REPLACE with Database user password
 $password = "sdouc";
 
-// Keep this API Key value to be compatible with the ESP32 code provided in the project page. 
-// If you change this value, the ESP32 sketch needs to match
 $api_key_value = "uc7LkiKar7";
 
 $api_key= $sensor = $location = $value1 = $value2 = $value3 = "";
