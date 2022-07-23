@@ -25,7 +25,6 @@ const char* password = "sdouc";
 const char* serverName = "http://192.168.4.2/post-esp-data-a.php";
 
 // API key value
-// Ensure this is the same as the value in post-esp-data-a.php
 String apiKeyValue = "0yNlVEhIJY";
 
 // Sensor metadata
