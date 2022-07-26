@@ -1,5 +1,6 @@
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <WiFiManager.h>
 #include <max6675.h>
 #include <Adafruit_MCP3008.h>
 
@@ -18,11 +19,11 @@
 #define AMP         34
 
 // Network credentials
-const char* ssid     = "OUC_AIOPV_AP";
-const char* password = "sdouc";
+//const char* ssid     = "OUC_AIOPV_AP";
+//const char* password = "solarpi314";
 
 // Domain website/IP address
-const char* serverName = "http://192.168.4.2/post-esp-data-c.php";
+const char* finalServerName = "http://192.168.4.2/post-esp-data-c.php";
 
 // API key value
 String apiKeyValue = "zdf0OxuhHC";
@@ -65,7 +66,7 @@ float digitalAmp = 0;
 
 void setup()
 {
-  Serial.begin(115200);
+  /*Serial.begin(115200);
   WiFi.begin(ssid, password);
   Serial.println("Connecting...");
   while(WiFi.status() != WL_CONNECTED)
@@ -75,99 +76,119 @@ void setup()
   }
   Serial.println("");
   Serial.print("Connected to WiFi network with IP address: ");
-  Serial.println(WiFi.localIP());   
+  Serial.println(WiFi.localIP());
+  */
+  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
+  // it is a good practice to make sure your code sets wifi mode how you want it.
+
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+    
+  //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wm;
+
+  // reset settings - wipe stored credentials for testing
+  // these are stored by the esp library
+  wm.resetSettings();
+
+  // Automatically connect using saved credentials,
+  // if connection fails, it starts an access point with the specified name ( "AutoConnectAP"),
+  // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
+  // then goes into a blocking loop awaiting configuration and will return success result
+
+  bool res;
+  res = wm.autoConnect("OUC_AIOPV_AP","solarpi314");
+
+  if(!res) {
+    Serial.println("Failed to connect");
+  } 
+  else {
+    //if you get here you have connected to the WiFi    
+    Serial.println("Connected... :)");
+  }   
   adc.begin(PYRA_SCK, PYRA_MOSI, PYRA_MISO, PYRA_CS);  
 }
 
 void loop()
 {
-  if(WiFi.status() == WL_CONNECTED)
+  HTTPClient http;
+  http.begin(finalServerName);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  // Thermocouple sensing
+  for (int i; i < SAMPLES; i++)
   {
-    HTTPClient http;
-    http.begin(serverName);
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    rawCelsiusTemperature[i] = thermocouple.readCelsius();
+    celsiusTemperatureSum += rawCelsiusTemperature[i];
+  }
+  averageRawCelsiusTemperature = celsiusTemperatureSum / SAMPLES;
+  outputCelsiusTemperature = averageRawCelsiusTemperature;
 
-    // Thermocouple sensing
-    for (int i; i < SAMPLES; i++)
-    {
-      rawCelsiusTemperature[i] = thermocouple.readCelsius();
-      celsiusTemperatureSum += rawCelsiusTemperature[i];
-    }
-    averageRawCelsiusTemperature = celsiusTemperatureSum / SAMPLES;
-    outputCelsiusTemperature = averageRawCelsiusTemperature;
+  for (int i; i < SAMPLES; i++)
+  {
+    rawFahrenheitTemperature[i] = thermocouple.readFahrenheit();
+    fahrenheitTemperatureSum += rawFahrenheitTemperature[i];
+  }
+  averageRawFahrenheitTemperature = fahrenheitTemperatureSum / SAMPLES;
+  outputFahrenheitTemperature = averageRawFahrenheitTemperature;
+  // Pyranometer sensing
+  for (int i = 0; i < SAMPLES; i++)
+  {
+    rawIrradiance[i] = adc.readADCDifference(1) * conv * pcf;
+    irradianceSum += rawIrradiance[i];
+  }
+  averageRawIrradiance = irradianceSum / SAMPLES;
+  outputIrradiance = averageRawIrradiance;
+  // Voltage sensing
+  for (int i = 0; i < SAMPLES; i++)
+  {
+    analogVolt[i] = analogRead(VOLT);
+    voltSum += analogVolt[i];
+  }
+  averageAnalogVolt = voltSum / SAMPLES;
+  digitalVolt = 22.05 * (0.16 + (averageAnalogVolt * 3.3 / 4095));
 
-    for (int i; i < SAMPLES; i++)
-    {
-      rawFahrenheitTemperature[i] = thermocouple.readFahrenheit();
-      fahrenheitTemperatureSum += rawFahrenheitTemperature[i];
-    }
-    averageRawFahrenheitTemperature = fahrenheitTemperatureSum / SAMPLES;
-    outputFahrenheitTemperature = averageRawFahrenheitTemperature;
+  // Current sensing
+  for (int i = 0; i < SAMPLES; i++)
+  {
+    analogAmp[i] = analogRead(AMP);
+    ampSum += analogAmp[i];
+  }
+  averageAnalogAmp = ampSum / SAMPLES;
+  digitalAmp = ((((averageAnalogAmp * 3.3) / 4095) + 0.102) / 0.173);
 
-    // Pyranometer sensing
-    for (int i = 0; i < SAMPLES; i++)
-    {
-      rawIrradiance[i] = adc.readADCDifference(1) * conv * pcf;
-      irradianceSum += rawIrradiance[i];
-    }
-    averageRawIrradiance = irradianceSum / SAMPLES;
-    outputIrradiance = averageRawIrradiance;
+  // Concatenate all collected values into a string to be passed to web server
+  String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(outputCelsiusTemperature) + "&value2=" + String(outputFahrenheitTemperature)  + "&value3=" + String(outputIrradiance) + "&value4=" + String(digitalVolt) + "&value5=" + String(digitalAmp);
+  Serial.print("httpRequestData: ");
+  Serial.println(httpRequestData);
 
-    // Voltage sensing
-    for (int i = 0; i < SAMPLES; i++)
-    {
-      analogVolt[i] = analogRead(VOLT);
-      voltSum += analogVolt[i];
-    }
-    averageAnalogVolt = voltSum / SAMPLES;
-    digitalVolt = 22.05 * (0.16 + (averageAnalogVolt * 3.3 / 4095));
-
-    // Current sensing
-    for (int i = 0; i < SAMPLES; i++)
-    {
-      analogAmp[i] = analogRead(AMP);
-      ampSum += analogAmp[i];
-    }
-    averageAnalogAmp = ampSum / SAMPLES;
-    digitalAmp = ((((averageAnalogAmp * 3.3) / 4095) + 0.102) / 0.173);
-
-    // Concatenate all collected values into a string to be passed to web server
-    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(outputCelsiusTemperature) + "&value2=" + String(outputFahrenheitTemperature)  + "&value3=" + String(outputIrradiance) + "&value4=" + String(digitalVolt) + "&value5=" + String(digitalAmp);
-    Serial.print("httpRequestData: ");
-    Serial.println(httpRequestData);
-
-    int httpResponseCode = http.POST(httpRequestData);
-    if (httpResponseCode>0)
-    {
-      Serial.print("HTTP Response Code: ");
-      Serial.println(httpResponseCode);
-    }
-    else
-    {
-      Serial.print("Error code: ");
-      Serial.println(httpResponseCode);
-    }
-    // Free resources
-    http.end();
-    celsiusTemperatureSum = 0;
-    averageRawCelsiusTemperature = 0;
-    outputCelsiusTemperature = 0;
-    fahrenheitTemperatureSum = 0;
-    averageRawFahrenheitTemperature = 0;
-    outputFahrenheitTemperature = 0;
-    irradianceSum = 0;
-    averageRawIrradiance = 0;
-    outputIrradiance = 0;
-    voltSum = 0;
-    averageAnalogVolt = 0;
-    digitalVolt = 0;
-    ampSum = 0;
-    averageAnalogAmp = 0;
-    digitalAmp = 0;
+  int httpResponseCode = http.POST(httpRequestData);
+  if (httpResponseCode>0)
+  {
+    Serial.print("HTTP Response Code: ");
+    Serial.println(httpResponseCode);
   }
   else
   {
-    Serial.println("WiFi Disconnected");
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
   }
+  // Free resources
+  http.end();
+  celsiusTemperatureSum = 0;
+  averageRawCelsiusTemperature = 0;
+  outputCelsiusTemperature = 0;
+  fahrenheitTemperatureSum = 0;
+  averageRawFahrenheitTemperature = 0;
+  outputFahrenheitTemperature = 0;
+  irradianceSum = 0;
+  averageRawIrradiance = 0;
+  outputIrradiance = 0;
+  voltSum = 0;
+  averageAnalogVolt = 0;
+  digitalVolt = 0;
+  ampSum = 0;
+  averageAnalogAmp = 0;
+  digitalAmp = 0;
   delay(1000);
 }

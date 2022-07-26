@@ -19,7 +19,7 @@
 
 // Network credentials
 const char* ssid     = "OUC_AIOPV_AP";
-const char* password = "sdouc";
+const char* password = "solarpi314";
 
 // Domain website/IP address
 const char* serverName = "http://192.168.4.2/post-esp-data-b.php";
