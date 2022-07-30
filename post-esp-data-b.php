@@ -22,7 +22,7 @@ $password = "sdouc";
 
 $api_key_value = "uc7LkiKar7";
 
-$api_key= $sensor = $location = $value1 = $value2 = $value3 = "";
+$api_key= $sensor = $location = $value1 = $value2 = $value3 = $value4 = $value5 = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $api_key = test_input($_POST["api_key"]);
@@ -32,8 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $value1 = test_input($_POST["value1"]);
         $value2 = test_input($_POST["value2"]);
         $value3 = test_input($_POST["value3"]);
-	$value4 = test_input($_POST["value4"]);
-	$value5 = test_input($_POST["value5"]);
+	    $value4 = test_input($_POST["value4"]);
+	    $value5 = test_input($_POST["value5"]);
         
         // Create connection
         $conn = new mysqli($servername, $username, $password, $dbname);
