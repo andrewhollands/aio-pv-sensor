@@ -1,4 +1,16 @@
 /*
+	
+	esp-access-point.ino
+
+ 	This module is to be flashed to a standalone ESP32 module/developmental board
+ 	via Arduino IDE (preferred). Its purpose is to serve a Wi-Fi network.
+
+ 	Created by UCF Senior Design Spring 2022 - Summer 2022 Group 6
+ 	Released on June 30th, 2022
+
+*/
+
+/*
   WiFiAccessPoint.ino creates a WiFi access point and provides a web server on it.
   Created for arduino-esp32 on 04 July, 2018
   by Elochukwu Ifediora (fedy0)
