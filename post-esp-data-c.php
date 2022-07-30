@@ -1,14 +1,15 @@
 <?php
-
 /*
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-esp8266-mysql-database-php/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
+	
+	post-esp-data-c.php
+
+ 	This module is to be inserted into the /var/www/html directory stored on the Raspberry
+ 	Pi. Its purpose is to receive data from the AIO PV Sensor at Panel C and store it in
+ 	its respective database.
+
+ 	Created by UCF Senior Design Spring 2022 - Summer 2022 Group 6
+ 	Released on June 30th, 2022
+
 */
 
 $servername = "localhost";
