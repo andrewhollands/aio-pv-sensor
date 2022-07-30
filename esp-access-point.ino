@@ -9,8 +9,8 @@
 #include <WiFiAP.h>
 
 // Set these to your desired credentials.
-const char *ssid     = "OUC_AIOPV_AP";
-const char *password = "sdouc";
+const char *ap_ssid     = "OUC_AIOPV_AP";
+const char *ap_password = "solarpi314";
 
 WiFiServer server(80);
 
@@ -20,7 +20,7 @@ void setup() {
   Serial.println("Configuring access point...");
 
   // You can remove the password parameter if you want the AP to be open.
-  WiFi.softAP(ssid, password);
+  WiFi.softAP(ap_ssid, ap_password);
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
