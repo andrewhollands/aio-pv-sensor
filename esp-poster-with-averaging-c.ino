@@ -1,6 +1,13 @@
+/* 	All-In-One (AIO) Photovoltaic (PV) Sensor C
+ 	This module is used for controlling the ESP32 MCU onboard the sensing device on panel C.
+ 	Module's functionalities include:
+ 		(1) collecting data from each sensing module onboard the AIO PV Sensor,
+ 		(2) converting that data when necessary (unless converted through HW), and 
+ 		(3) averaging collected data, and transmitting data to a PHP file stored on the collector node.
+*/
+
 #include <HTTPClient.h>
 #include <WiFi.h>
-#include <WiFiManager.h>
 #include <max6675.h>
 #include <Adafruit_MCP3008.h>
 
@@ -19,176 +26,217 @@
 #define AMP         34
 
 // Network credentials
-//const char* ssid     = "OUC_AIOPV_AP";
-//const char* password = "solarpi314";
+String ap_ssid     = "OUC_AIOPV_AP";
+String ap_password = "solarpi314";
 
 // Domain website/IP address
-const char* finalServerName = "http://192.168.4.2/post-esp-data-c.php";
 
-// API key value
-String apiKeyValue = "zdf0OxuhHC";
+int ipFix = 0;	// Counter variable for last digit of IP address (LAN website)
+// PHP file where collected data is posted to
+String serverNameFix = "http://192.168.4.0/post-esp-data-c.php"; /* Last digit of IP 
+																 	address starts at 0
+																 	as a base case 
+																 	(until it reaches the
+																 	correct IP address)
+																 */ 
 
-// Sensor metadata
+// API key value used to ensure only this device can post data to the database
+// acts as an embedded password
+String apiKeyValue = "zdf0OxuhHC"; 
+
+// Sensor meta data
 String sensorName = "AIO PV Sensor C";
 String sensorLocation = "Solar Panel C";
 
 // Thermocouple
-MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO);
-int rawCelsiusTemperature[SAMPLES] = {};
-int celsiusTemperatureSum = 0;
-float averageRawCelsiusTemperature = 0;
-float outputCelsiusTemperature = 0;
-int rawFahrenheitTemperature[SAMPLES] = {};
-int fahrenheitTemperatureSum = 0;
-float averageRawFahrenheitTemperature = 0;
-float outputFahrenheitTemperature = 0;
+MAX6675 thermocouple(THERMO_CLK, THERMO_CS, THERMO_DO); /* 	Instantiating MAX6675 (ADC)
+															object with the ESP32 pin
+															numbers associated with
+															thermocouple's CLK, CS, and 
+															DO pins
+														*/
+int rawCelsiusTemperature[SAMPLES] = {}; // Buffer array used for averaging Celsius temperature values
+int celsiusTemperatureSum = 0; // Accumulator variable used for averaging Celsius temperature values
+float averageRawCelsiusTemperature = 0; // Average Celsius temperature value
+float outputCelsiusTemperature = 0; // Same as averageRawCelsiusTemperature
+int rawFahrenheitTemperature[SAMPLES] = {}; // Buffer array used for averaging Fahrenheit temperature values
+int fahrenheitTemperatureSum = 0; // Accumulator variable used for averaging Fahrenheit temperature values
+float averageRawFahrenheitTemperature = 0; // Average Fahrenheit temperature value
+float outputFahrenheitTemperature = 0; // Same as averageRawFahrenheitTemperature
 
 // Pyranometer
-Adafruit_MCP3008 adc;
-float conv = (3.3 / 1024);
-float pcf = 5000; // 1000 for V to mV, 5 for mV to W/m^2
-int rawIrradiance[SAMPLES] = {};
-int irradianceSum = 0;
-float averageRawIrradiance = 0;
-float outputIrradiance = 0;
+Adafruit_MCP3008 adc; // Instantiating MCP3008 object 
+float conv = (3.3 / 1024); // Conversion factor for 10-bit ADC (MCP3008)
+float pcf = 5000; // Conversion factors of 1000 for V to mV and 5 for mV to W/m^2
+int rawIrradiance[SAMPLES] = {}; // Buffer array used for averaging irradiance values
+int irradianceSum = 0; // Accumulator variable used for averaging irradiance values
+float averageRawIrradiance = 0; // Average irradiance value
+float outputIrradiance = 0; // Same as above
 
 // Voltage sensor
-int analogVolt[SAMPLES] = {};
-int voltSum = 0;
-float averageAnalogVolt = 0;
-float digitalVolt = 0;
+int analogVolt[SAMPLES] = {}; // Buffer array used for averaging analog voltage values
+int voltSum = 0; // Accumulator variable used for averaging analog voltage values
+float averageAnalogVolt = 0; // Average analog voltage value
+float digitalVolt = 0; // Average digital voltage value
 
 // Current sensor
-int analogAmp[SAMPLES] = {};
-int ampSum = 0;
-float averageAnalogAmp = 0;
-float digitalAmp = 0;
+int analogAmp[SAMPLES] = {}; // Buffer array used for averaging analog current values
+int ampSum = 0; // Accumulator variable used for averaging analog current values
+float averageAnalogAmp = 0; // Average analog current value
+float digitalAmp = 0; // Average digital current value
 
+// Setup Wi-Fi connection and pyranometer's ADC
 void setup()
 {
-  /*Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting...");
-  while(WiFi.status() != WL_CONNECTED)
+  Serial.begin(115200); // Open a serial port at 115200 baud rate
+  WiFi.begin(ap_ssid, ap_password); // Connect to a Wi-Fi network with provided credentials
+  Serial.println("Connecting..."); // Print 'Connecting...' status to serial port 
+  
+  // Print '.' every 500 milliseconds until connected to desired Wi-Fi network
+  while(WiFi.status() != WL_CONNECTED) 
   {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
+  Serial.println(""); // Newline
+  
+  // Print IP address of Wi-Fi network to serial port
   Serial.print("Connected to WiFi network with IP address: ");
   Serial.println(WiFi.localIP());
-  */
-  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-  // it is a good practice to make sure your code sets wifi mode how you want it.
-
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-    
-  //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
-  WiFiManager wm;
-
-  // reset settings - wipe stored credentials for testing
-  // these are stored by the esp library
-  wm.resetSettings();
-
-  // Automatically connect using saved credentials,
-  // if connection fails, it starts an access point with the specified name ( "AutoConnectAP"),
-  // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
-  // then goes into a blocking loop awaiting configuration and will return success result
-
-  bool res;
-  res = wm.autoConnect("OUC_AIOPV_AP","solarpi314");
-
-  if(!res) {
-    Serial.println("Failed to connect");
-  } 
-  else {
-    //if you get here you have connected to the WiFi    
-    Serial.println("Connected... :)");
-  }   
-  adc.begin(PYRA_SCK, PYRA_MOSI, PYRA_MISO, PYRA_CS);  
+  
+  // Initiate pyranometer's ADC with the ESP32 pin numbers associated with pyranometer's SCK, MOSI, MISO, and CS pins
+  adc.begin(PYRA_SCK, PYRA_MOSI, PYRA_MISO, PYRA_CS);
 }
 
 void loop()
 {
-  HTTPClient http;
-  http.begin(finalServerName);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  // If connected to Wi-Fi network
+  if(WiFi.status() == WL_CONNECTED)
+  {
+    // Instantiating HTTP client object and beginning connection to LAN website
+    HTTPClient http;
+    http.begin(serverNameFix);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-  // Thermocouple sensing
-  for (int i; i < SAMPLES; i++)
-  {
-    rawCelsiusTemperature[i] = thermocouple.readCelsius();
-    celsiusTemperatureSum += rawCelsiusTemperature[i];
-  }
-  averageRawCelsiusTemperature = celsiusTemperatureSum / SAMPLES;
-  outputCelsiusTemperature = averageRawCelsiusTemperature;
+    // Thermocouple sensing
+    // Outputs the average Celsius temperature value collected over SAMPLES samples
+    for (int i; i < SAMPLES; i++)
+    {
+      rawCelsiusTemperature[i] = thermocouple.readCelsius();
+      celsiusTemperatureSum += rawCelsiusTemperature[i];
+    }
+    averageRawCelsiusTemperature = celsiusTemperatureSum / SAMPLES;
+    outputCelsiusTemperature = averageRawCelsiusTemperature;
+	
+	// Outputs the average Fahrenheit temperature value collected over SAMPLES samples
+    for (int i; i < SAMPLES; i++)
+    {
+      rawFahrenheitTemperature[i] = thermocouple.readFahrenheit();
+      fahrenheitTemperatureSum += rawFahrenheitTemperature[i];
+    }
+    averageRawFahrenheitTemperature = fahrenheitTemperatureSum / SAMPLES;
+    outputFahrenheitTemperature = averageRawFahrenheitTemperature;
 
-  for (int i; i < SAMPLES; i++)
-  {
-    rawFahrenheitTemperature[i] = thermocouple.readFahrenheit();
-    fahrenheitTemperatureSum += rawFahrenheitTemperature[i];
-  }
-  averageRawFahrenheitTemperature = fahrenheitTemperatureSum / SAMPLES;
-  outputFahrenheitTemperature = averageRawFahrenheitTemperature;
-  // Pyranometer sensing
-  for (int i = 0; i < SAMPLES; i++)
-  {
-    rawIrradiance[i] = adc.readADCDifference(1) * conv * pcf;
-    irradianceSum += rawIrradiance[i];
-  }
-  averageRawIrradiance = irradianceSum / SAMPLES;
-  outputIrradiance = averageRawIrradiance;
-  // Voltage sensing
-  for (int i = 0; i < SAMPLES; i++)
-  {
-    analogVolt[i] = analogRead(VOLT);
-    voltSum += analogVolt[i];
-  }
-  averageAnalogVolt = voltSum / SAMPLES;
-  digitalVolt = 22.05 * (0.16 + (averageAnalogVolt * 3.3 / 4095));
+    // Pyranometer sensing
+    // Outputs the average irradiance value collected over SAMPLES samples
+    for (int i = 0; i < SAMPLES; i++)
+    {
+      rawIrradiance[i] = adc.readADCDifference(1) * conv * pcf;
+      irradianceSum += rawIrradiance[i];
+    }
+    averageRawIrradiance = irradianceSum / SAMPLES;
+    outputIrradiance = averageRawIrradiance;
 
-  // Current sensing
-  for (int i = 0; i < SAMPLES; i++)
-  {
-    analogAmp[i] = analogRead(AMP);
-    ampSum += analogAmp[i];
-  }
-  averageAnalogAmp = ampSum / SAMPLES;
-  digitalAmp = ((((averageAnalogAmp * 3.3) / 4095) + 0.102) / 0.173);
+    // Voltage sensing
+    // Outputs the average voltage value collected over SAMPLES samples
+    for (int i = 0; i < SAMPLES; i++)
+    {
+      analogVolt[i] = analogRead(VOLT);
+      voltSum += analogVolt[i];
+    }
+    averageAnalogVolt = voltSum / SAMPLES;
+    digitalVolt = 22.05 * (0.16 + (averageAnalogVolt * 3.3 / 4095));
 
-  // Concatenate all collected values into a string to be passed to web server
-  String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(outputCelsiusTemperature) + "&value2=" + String(outputFahrenheitTemperature)  + "&value3=" + String(outputIrradiance) + "&value4=" + String(digitalVolt) + "&value5=" + String(digitalAmp);
-  Serial.print("httpRequestData: ");
-  Serial.println(httpRequestData);
+    // Current sensing
+    // Outputs the average current value collected over SAMPLES samples
+    for (int i = 0; i < SAMPLES; i++)
+    {
+      analogAmp[i] = analogRead(AMP);
+      ampSum += analogAmp[i];
+    }
+    averageAnalogAmp = ampSum / SAMPLES;
+    digitalAmp = ((((averageAnalogAmp * 3.3) / 4095) + 0.102) / 0.173);
 
-  int httpResponseCode = http.POST(httpRequestData);
-  if (httpResponseCode>0)
-  {
-    Serial.print("HTTP Response Code: ");
-    Serial.println(httpResponseCode);
+    // Concatenate all collected values into a string to be passed to web server via HTTP 
+    
+    // If thermocouple is disconnected
+    if (outputCelsiusTemperature < 0)
+    {
+      String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String("NaN") + "&value2=" + String("NaN")  + "&value3=" + String(outputIrradiance) + "&value4=" + String(digitalVolt) + "&value5=" + String(digitalAmp);
+    }
+    // If thermocouple is connected
+    else
+    {
+      String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName + "&location=" + sensorLocation + "&value1=" + String(outputCelsiusTemperature) + "&value2=" + String(outputFahrenheitTemperature)  + "&value3=" + String(outputIrradiance) + "&value4=" + String(digitalVolt) + "&value5=" + String(digitalAmp);
+    }
+    
+    // Print HTTP post request to serial port
+    Serial.print("httpRequestData: ");
+    Serial.println(httpRequestData);
+
+    int httpResponseCode = http.POST(httpRequestData); // HTTP response code
+    
+	// Print valid HTTP response code to serial port
+    if (httpResponseCode>0)
+    {
+      Serial.print("HTTP Response Code: ");
+      Serial.println(httpResponseCode); // Will be 200 if valid
+    }
+    
+    // Print invalid HTTP response code to serial port
+    // Increment the counter variable for the last digit of the IP address and update the website URL
+    else
+    {
+      Serial.print("Error code: ");
+      Serial.println(httpResponseCode);
+      Serial.print("IP address fix count: ");
+      Serial.println(ipFix);
+      ipFix += 1;
+      serverNameFix = "http://192.168.4." + String(ipFix) + "/post-esp-data-c.php";
+      
+      // Reset ipFix variable to 0 if it reaches an IP address digit's physical maximum of 255
+      if (ipFix > 255)
+      {
+        ipFix = 0;
+      }
+    }
+    
+    // Stop HTTP client
+    http.end();
+    
+    // Reset variables used for averaging 
+    celsiusTemperatureSum = 0;
+    averageRawCelsiusTemperature = 0;
+    outputCelsiusTemperature = 0;
+    fahrenheitTemperatureSum = 0;
+    averageRawFahrenheitTemperature = 0;
+    outputFahrenheitTemperature = 0;
+    irradianceSum = 0;
+    averageRawIrradiance = 0;
+    outputIrradiance = 0;
+    voltSum = 0;
+    averageAnalogVolt = 0;
+    digitalVolt = 0;
+    ampSum = 0;
+    averageAnalogAmp = 0;
+    digitalAmp = 0;
   }
+  
+  // Print Wi-Fi connection status if not connected to Wi-Fi network
   else
   {
-    Serial.print("Error code: ");
-    Serial.println(httpResponseCode);
+    Serial.println("Wi-Fi Disconnected");
   }
-  // Free resources
-  http.end();
-  celsiusTemperatureSum = 0;
-  averageRawCelsiusTemperature = 0;
-  outputCelsiusTemperature = 0;
-  fahrenheitTemperatureSum = 0;
-  averageRawFahrenheitTemperature = 0;
-  outputFahrenheitTemperature = 0;
-  irradianceSum = 0;
-  averageRawIrradiance = 0;
-  outputIrradiance = 0;
-  voltSum = 0;
-  averageAnalogVolt = 0;
-  digitalVolt = 0;
-  ampSum = 0;
-  averageAnalogAmp = 0;
-  digitalAmp = 0;
+  // Wait 1 second
   delay(1000);
 }
