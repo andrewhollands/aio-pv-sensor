@@ -1,9 +1,18 @@
-/* 	All-In-One (AIO) Photovoltaic (PV) Sensor B
- 	This module is used for controlling the ESP32 MCU onboard the sensing device on panel B.
- 	Module's functionalities include:
+/*
+	
+	esp-poster-with-averaging-b.ino
+
+ 	This module is to be flashed to a ESP32 module/developmental board located on the
+ 	sensing device on panel A via Arduino IDE (preferred). Its purpose is to control the
+ 	MCU onboard the sensing device on panel B, providing the following functionalities:
  		(1) collecting data from each sensing module onboard the AIO PV Sensor,
  		(2) converting that data when necessary (unless converted through HW), and 
- 		(3) averaging collected data, and transmitting data to a PHP file stored on the collector node.
+ 		(3) averaging collected data, and transmitting data to a PHP file stored on the
+ 		    collector node.
+
+ 	Created by UCF Senior Design Spring 2022 - Summer 2022 Group 6
+ 	Released on June 30th, 2022
+
 */
 
 #include <HTTPClient.h>
