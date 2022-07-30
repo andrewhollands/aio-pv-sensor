@@ -1,3 +1,16 @@
+/*
+	
+	SensorDataA.sql
+
+ 	The contents of this module are to be copied and pasted into a new database's 'SQL' 
+ 	tab in phpMyAdmin to create a new SQL table 'SensorDataA'. Its purpose is to structure
+ 	a database.
+
+ 	Created by UCF Senior Design Spring 2022 - Summer 2022 Group 6
+ 	Released on June 30th, 2022
+
+*/
+
 CREATE TABLE SensorDataA (
     id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sensor VARCHAR(30) NOT NULL,
