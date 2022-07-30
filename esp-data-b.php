@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+	
+	esp-data-b.php
+
+ 	This module is to be inserted into the /var/www/html directory stored on the Raspberry
+ 	Pi. Its purpose is to query data from Panel B's database and display it on an HTML
+ 	webpage.
+
+ 	Created by UCF Senior Design Spring 2022 - Summer 2022 Group 6
+ 	Released on June 30th, 2022
+
+-->
+
 <head>
     <title>
         Reloading page after 1 second
@@ -12,16 +25,6 @@
     </script>
 </head>
 <?php
-/*
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-esp8266-mysql-database-php/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*/
 
 $servername = "localhost";
 
