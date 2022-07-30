@@ -16,7 +16,7 @@ To install Apache2 on the Raspberry Pi, run the following command:
 ```
 sudo apt install apache2 -y
 ```
-By default, Apache2 will store its directory in the `/var/www/html/` directory and we will keep this as is for our purposes.
+By default, Apache2 will store its directory at `/var/www/html/` and we will keep this as is for our purposes.
 ## [PHP: Hypertext Preprocessor](https://www.php.net)
 PHP is the scripting language we will use write our server's webpages, in conjunction with HTML when necessary.
 To install PHP on the Raspberry Pi's Apache2 web server, first navigate to Apache2's directory, `/var/www/html/` by running
@@ -65,7 +65,5 @@ Our design will implement two (2) ESP32 devices: one (the "sensing node") will b
 The sensing node will house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-poster-with-averaging.c) that will convert analog values to digital values where necessary and then organize collected values into an [HTTP post](https://github.com/andrewhollands/aio-pv-sensor/blob/main/post-esp-data.php), which will be interfaced with the [MySQL database/HTML webpage](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-data.php) housed on the Raspberry Pi's Apache2 web server.
 The access point will also house a [program written in C](https://github.com/andrewhollands/aio-pv-sensor/blob/main/esp-access-point.c) that enables the ESP32 device to act as a Wi-Fi access point for multiple wireless device connections.
 ## Wrap-Up
-The Apache2 web server can be accessed by navigating to the Raspberry Pi's IP address in a web browser.
-By default, the Raspberry Pi's IP address will be dynamically assigned each time it connects to a Wi-Fi network. To make it easier to connect to the Raspberry Pi's databases, we configured the Raspberry Pi to be assigned only one IP address: `192.168.4.2`.
-As an example, we can access the Raspberry Pi's Apache2 web server by navigating to `http://192.168.4.2` via Chrome on a standalone device connected to a common Wi-Fi network. The user will be presented with the Apache2 web server's `var/www/html` directory. In the directory, we will find `esp-data-a.php`, `esp-data-b.php`, `esp-data-c.php`, `phpmyadmin/`, `post-esp-data-a.php`, `post-esp-data-b.php`, and `post-esp-data-c.php`.
-If you've read this far, thank you so much for your interest! We certainly have invested and injected our greatest work into this project. If you're still reading and would like to learn more about our project \[and you're a member of UCF\], visit our [website](http://maverick.eecs.ucf.edu/seniordesign/sp2022su2022/g06/). It includes comprehensive details of our hardware, our research, our team, and more.
+The Apache2 web server can be accessed by navigating to the Raspberry Pi's IP address in a web browser. Until the web server is ported to a domain found on the Internet (e.g. github.com), accessing the Raspberry Pi's web server can be done by navigating to its IP address of `192.168.4.X` via HTTP where `X` is an integer between 2 and 255, inclusive.
+As an example, we can access the Raspberry Pi's Apache2 web server by navigating to `http://192.168.4.2` via Safari on an iPhone connected to the common the ESP32 access point. The user will be directed to `192.168.4.2/index.html` which contains buttons to reach Panel A data, Panel B data, Panel C data, and phpMyAdmin, where each button references `esp-data-a.php`, `esp-data-b.php`, `esp-data-c.php`, and the `phpmyadmin` directory, respectively. All mentioned files and locations are stored in `var/www/html`.
