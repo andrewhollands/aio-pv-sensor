@@ -14,7 +14,7 @@
 
 <head>
     <title>
-        Reloading page after 1 second
+        Panel A Data
     </title>
       
     <script>
