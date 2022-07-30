@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <head>
     <title>
-        Reloading page after 5 seconds
+        Reloading page after 1 second
     </title>
       
     <script>
         function autoRefresh() {
             window.location = window.location.href;
         }
-        setInterval('autoRefresh()', 2000);
+        setInterval('autoRefresh()', 400);
     </script>
 </head>
 <?php
@@ -49,8 +49,8 @@ echo '<table cellspacing="5" cellpadding="5">
         <td>Temperature (°C)</td> 
         <td>Temperature (°F)</td> 
         <td>Irradiance (W/m^2)</td> 
-	<td>Voltage (V)</td>
-	<td>Current (A)</td> 
+	    <td>Voltage (V)</td>
+	    <td>Current (A)</td> 
         <td>Timestamp</td> 
       </tr>';
  
@@ -62,8 +62,8 @@ if ($result = $conn->query($sql)) {
         $row_value1 = $row["value1"];
         $row_value2 = $row["value2"]; 
         $row_value3 = $row["value3"]; 
-	$row_value4 = $row["value4"];
-	$row_value5 = $row["value5"]; 
+	    $row_value4 = $row["value4"];
+	    $row_value5 = $row["value5"]; 
         $row_reading_time = $row["reading_time"];
         // Uncomment to set timezone to - 1 hour (you can change 1 to any number)
         //$row_reading_time = date("Y-m-d H:i:s", strtotime("$row_reading_time - 1 hours"));
@@ -78,8 +78,8 @@ if ($result = $conn->query($sql)) {
                 <td>' . $row_value1 . '</td> 
                 <td>' . $row_value2 . '</td> 
                 <td>' . $row_value3 . '</td> 
-		<td>' . $row_value4 . '</td>
-		<td>' . $row_value5 . '</td> 
+		        <td>' . $row_value4 . '</td>
+		        <td>' . $row_value5 . '</td> 
                 <td>' . $row_reading_time . '</td> 
               </tr>';
     }
